@@ -1,7 +1,7 @@
 #pragma once
 #include "cuda_runtime.h"
+#include <iostream>
 
-#define GLOBAL_MEMBER_FUNC static __global__
 #define GPU_CPU_MEMBER_FUNC static __inline__ __device__ __host__
 #define GPU_CPU_MEMBER_FUNC_NO_INLINE static __inline__ __device__ __host__
 
@@ -17,3 +17,14 @@
 #define KERNEL_ARGS3(grid, block, sh_mem)
 #define KERNEL_ARGS4(grid, block, sh_mem, stream)
 #endif
+
+#define CHECK(status)                                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        auto ret = (status);                                                                                           \
+        if (ret != 0)                                                                                                  \
+        {                                                                                                              \
+            std::cerr << "Cuda failure: " << ret << std::endl;                                                 \
+            abort();                                                                                                   \
+        }                                                                                                              \
+    } while (0)

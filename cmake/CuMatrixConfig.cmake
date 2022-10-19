@@ -12,7 +12,7 @@ endif (CUDA_FOUND)
 if(NOT CUDA_FOUND)
   message(FATAL_ERROR
   "CUDA must be installed
-  CUDA_FOUND ${TENSORRT_FOUND}\n")
+  CUDA_FOUND ${CUDA_FOUND}\n")
 endif()
 
 
@@ -30,3 +30,4 @@ SET (CU_MATRIX_LIBS
 SET (CU_MATRIX_SOURCE_CPP
 	#
 )
+

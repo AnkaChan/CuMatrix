@@ -1,6 +1,7 @@
 #pragma once
-
+#include "cuda_runtime.h"
 #include "CuMatrixDefs.h"
+#include "device_launch_parameters.h"
 
 struct CuMatrix
 {
@@ -39,24 +40,41 @@ struct CuMatrix
 		mat3GetVecProduct(inA, inB+6, outC+6);
 	}
 
-
-	// multiplying 2 mat with abitary dimensions
-	GLOBAL_MEMBER_FUNC void multiplicateMatrixOnDevice(float* array_A, float* array_B, float* array_C, int M_p, int K_p, int N_p)
-	{
-		int ix = threadIdx.x + blockDim.x * blockIdx.x;//row number
-		int iy = threadIdx.y + blockDim.y * blockIdx.y;//col number
-
-		if (ix < N_p && iy < M_p)
-		{
-			float sum = 0;
-			for (int k = 0; k < K_p; k++)
-			{
-				sum += array_A[iy * K_p + k] * array_B[k * N_p + ix];
-			}
-			array_C[iy * N_p + ix] = sum;
-		}
+	GPU_CPU_MEMBER_FUNC float mat3GetDeterminant(float* m) {
+		float  a11 = m[0]; float a12 = m[3]; float  a13 = m[6];
+		float  a21 = m[1]; float  a22 = m[4]; float  a23 = m[7];
+		float  a31 = m[2]; float  a32 = m[5]; float  a33 = m[8];
+		return a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31 - a12 * a21 * a33 - a11 * a23 * a32;
 	}
 
 
 
+
+
+
 };
+
+template <class Func>
+__global__ void parallel_for_3x3_matOps(float* matsFlatten, int numMats, Func func) {
+	for (int i = threadIdx.x; i < numMats; i += blockDim.x)
+	{
+		func(matsFlatten + 9 * i, i);
+	}
+}
+
+// multiplying 2 mat with abitary dimensions
+__global__ void multiplicateMatrixOnDevice(float* array_A, float* array_B, float* array_C, int M_p, int K_p, int N_p)
+{
+	int ix = threadIdx.x + blockDim.x * blockIdx.x;//row number
+	int iy = threadIdx.y + blockDim.y * blockIdx.y;//col number
+
+	if (ix < N_p && iy < M_p)
+	{
+		float sum = 0;
+		for (int k = 0; k < K_p; k++)
+		{
+			sum += array_A[iy * K_p + k] * array_B[k * N_p + ix];
+		}
+		array_C[iy * N_p + ix] = sum;
+	}
+}
