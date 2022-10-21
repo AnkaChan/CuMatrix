@@ -39,8 +39,6 @@ public:
 	};
 
 	void enableCPU() {
-
-		useCPUBuf = true;
 		cpuBuffer.resize(getSize());
 	}
 
@@ -61,8 +59,6 @@ private:
 
 	size_t size = 0;
 
-	bool useCPUBuf = false;
-
 	DeviceBuffer gpuBuffer;
 	HostBuffer cpuBuffer;
 };
@@ -70,7 +66,7 @@ private:
 template<typename T>
 inline void ManagedBuffer<T>::toCPU()
 {
-	if (!useCPUBuf)
+	if (getCPUBuffer() == nullptr)
 	{
 		enableCPU();
 	}

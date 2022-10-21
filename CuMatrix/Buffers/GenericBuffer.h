@@ -53,15 +53,27 @@ public:
     {
     }
 
-    //!
-    //! \brief Construct a buffer with the specified allocation size in bytes.
-    //!
-    GenericBuffer(size_t size, CudaDataType type)
-        : mSize(size)
-        , mCapacity(size)
-        , mType(type)
-        , mOwnership(true)
-    {
+    ////!
+    ////! \brief Construct a buffer with the specified allocation size in bytes.
+    ////!
+    //GenericBuffer(size_t size, CudaDataType type)
+    //    : mSize(size)
+    //    , mCapacity(size)
+    //    , mType(type)
+    //    , mOwnership(true)
+    //{
+    //    if (!allocFn(&mBuffer, this->nbBytes()))
+    //    {
+    //        throw std::bad_alloc();
+    //    }
+    //}
+
+    void initializeWithSpace(size_t size, CudaDataType type) {
+        mSize = size;
+        mCapacity = size;
+        mType = type;
+        mOwnership = true;
+
         if (!allocFn(&mBuffer, this->nbBytes()))
         {
             throw std::bad_alloc();
@@ -82,19 +94,20 @@ public:
     }
 
     // takeOwnership will be ignored if pPreAllocBuf is nullptr
-    GenericBuffer(size_t size, CudaDataType type, void * pPreAllocBuf, bool takeOwnership=false)
+    GenericBuffer(size_t size, CudaDataType type, void * pPreAllocBuf = nullptr, bool takeOwnership=false)
         : mSize(size)
         , mCapacity(size)
         , mType(type)
-        , mBuffer(pPreAllocBuf)
     {
         if (pPreAllocBuf == nullptr)
         {
-            GenericBuffer(size, type);
+            initializeWithSpace(size, type);
         }
         else
         {
             mOwnership = takeOwnership;
+            mBuffer = pPreAllocBuf;
+
         }
     }
 
