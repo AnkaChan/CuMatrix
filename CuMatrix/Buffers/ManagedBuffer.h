@@ -20,6 +20,7 @@
 struct TypeSelceter
 {
 	static CudaDataType selectTypes(long v) { return  CudaDataType::kINT32; }
+	static CudaDataType selectTypes(int32_t v) { return  CudaDataType::kINT32; }
 	static CudaDataType selectTypes(float v) { return CudaDataType::kFLOAT; }
 	static CudaDataType selectTypes(short v) { return CudaDataType::kHALF; }
 	static CudaDataType selectTypes(unsigned char v) { return CudaDataType::kINT8; }
@@ -30,6 +31,9 @@ template<typename T>
 class ManagedBuffer
 {
 public:
+	typedef std::shared_ptr<ManagedBuffer<T>> SharedPtr;
+	typedef ManagedBuffer<T>* Ptr;
+
 	ManagedBuffer(size_t in_size, bool in_useCPUBuf = false, void* in_cpuBuffer = nullptr, bool in_cpuBufferOwnership = false)
 		: size(in_size)
 		, gpuBuffer(in_size, TypeSelceter::selectTypes(T()))

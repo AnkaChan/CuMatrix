@@ -245,6 +245,24 @@ public:
     }
 };
 
+class ManagedAllocator
+{
+public:
+    bool operator()(void** ptr, size_t size) const
+    {
+        return cudaMallocManaged(ptr, size) == cudaSuccess;
+    }
+};
+
+class ManagedFree
+{
+public:
+    void operator()(void* ptr) const
+    {
+        cudaFree(ptr);
+    }
+};
+
 class HostAllocator
 {
 public:
@@ -269,3 +287,49 @@ public:
 
 using DeviceBuffer = GenericBuffer<DeviceAllocator, DeviceFree>;
 using HostBuffer = GenericBuffer<HostAllocator, HostFree>;
+
+template <typename AllocFunc, typename FreeFunc, typename Class>
+class ClassBuffer
+{
+public:
+    typedef std::shared_ptr<ClassBuffer> SharedPtr;
+    typedef ClassBuffer* Ptr;
+
+    ClassBuffer(bool callConstructor = false) {
+        if (!allocFn(&data, sizeof(Class)))
+        {
+            throw std::bad_alloc();
+        }
+
+        if (callConstructor)
+        {
+            constructor();
+        }
+
+    }
+
+    ~ClassBuffer()
+    {
+        freeFn(data);
+    }
+
+    void constructor() {
+        new(data) Class();
+    }
+
+    Class* getData() {
+        return (Class *) data;
+    }
+
+    Class& operator->() const
+    {
+        return *target;
+    }
+private:
+    void* data;
+    AllocFunc allocFn;
+    FreeFunc freeFn;
+};
+
+template<typename Class>
+using ManagedClassBuffer = ClassBuffer<ManagedAllocator, ManagedFree, Class>;
