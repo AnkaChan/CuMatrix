@@ -39,7 +39,12 @@ public:
 		, gpuBuffer(in_size, TypeSelceter::selectTypes(T()))
 		, cpuBuffer(in_useCPUBuf ? in_size : 0, TypeSelceter::selectTypes(T()), in_cpuBuffer, (in_useCPUBuf && in_cpuBuffer != nullptr)? in_cpuBufferOwnership : false )
 	{
-		
+		if (in_cpuBuffer != nullptr)
+		{
+			// std::cout << "Registering address: " << in_cpuBuffer << std::endl;
+			CUDA_CHECK_RET(cudaHostRegister(in_cpuBuffer, cpuBuffer.nbBytes(), cudaHostRegisterDefault));
+
+		}
 	};
 
 	void enableCPU() {
@@ -54,10 +59,16 @@ public:
 	}
 
 	inline void toCPU();
+	inline void copyToExternalCPUBuffer(void * pExternalCPUBuffer);
 	inline void toGPU();
 	
+	// return the number of elements, no the memory size messured by bytes
 	size_t getSize() {
 		return size;
+	}
+
+	size_t nBytes() {
+		return gpuBuffer.nbBytes();
 	}
 private:
 
@@ -74,14 +85,21 @@ inline void ManagedBuffer<T>::toCPU()
 	{
 		enableCPU();
 	}
-	CHECK(cudaMemcpy(
+	CUDA_CHECK_RET(cudaMemcpy(
 		cpuBuffer.data(), gpuBuffer.data(), gpuBuffer.nbBytes(), cudaMemcpyDeviceToHost));
 
 }
 
 template<typename T>
+inline void ManagedBuffer<T>::copyToExternalCPUBuffer(void* pExternalCPUBuffer)
+{
+	CUDA_CHECK_RET(cudaMemcpy(
+		pExternalCPUBuffer, gpuBuffer.data(), gpuBuffer.nbBytes(), cudaMemcpyDeviceToHost));
+}
+
+template<typename T>
 inline void ManagedBuffer<T>::toGPU()
 {
-	CHECK(cudaMemcpy(
+	CUDA_CHECK_RET(cudaMemcpy(
 		gpuBuffer.data(), cpuBuffer.data(), cpuBuffer.nbBytes(), cudaMemcpyHostToDevice));
 }

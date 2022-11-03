@@ -18,7 +18,7 @@
 #define KERNEL_ARGS4(grid, block, sh_mem, stream)
 #endif
 
-#define CHECK(status)                                                                                                  \
+#define CUDA_CHECK_RET(status)                                                                                                  \
     do                                                                                                                 \
     {                                                                                                                  \
         auto ret = (status);                                                                                           \

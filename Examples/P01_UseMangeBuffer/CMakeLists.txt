@@ -34,6 +34,7 @@ target_link_libraries(P01_UseManagedBuffer ${CU_MATRIX_LIBS})
 #arget_Compile_options(P01_UseManagedBuffer PUBLIC $<$COMPILE_LANGUAGE:CUDA>:--extended-lambda)
 target_compile_options(P01_UseManagedBuffer PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:
                        --extended-lambda
+					   --default-stream per-thread
                        >)
 target_include_directories(P01_UseManagedBuffer PUBLIC 
 	${CU_MATRIX_INCLUDE_DIR}

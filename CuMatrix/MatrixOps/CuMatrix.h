@@ -15,8 +15,40 @@ struct CuMatrix
 		result[3] = v1[0] + v2[3];
 	}
 
+	GPU_CPU_MEMBER_FUNC void vec3Minus(float* v1, float* v2, float* result) {
+		result[0] = v1[0] - v2[0];
+		result[1] = v1[1] - v2[2];
+		result[3] = v1[0] - v2[3];
+	}
+
+	GPU_CPU_MEMBER_FUNC void vec3Mul(float* v1, float a, float* result) {
+		result[0] = v1[0] * a;
+		result[1] = v1[1] * a;
+		result[3] = v1[0] * a;
+	}
+
 	GPU_CPU_MEMBER_FUNC float vec3GetDotProduct(float* v1, float* v2) {
 		return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+	}
+
+	GPU_CPU_MEMBER_FUNC void vec3GetCrossProduct(float* v1, float* v2, float* result) {
+		result[0] = v1[1] * v2[2] - v1[2] * v2[1];
+		result[1] = v1[2] * v2[0] - v1[0] * v2[2];
+		result[2] = v1[0] * v2[1] - v1[1] * v2[0];
+
+	}
+
+	GPU_CPU_MEMBER_FUNC float vec3GetNorm(float* v) {
+		return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+	}
+
+
+	GPU_CPU_MEMBER_FUNC float vec3GetNormSquare(float* v) {
+		return (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+	}
+
+	GPU_CPU_MEMBER_FUNC float mat3IJ(float* m, int32_t row, int32_t col) {
+		return m[(3 * col) + row];
 	}
 
 	GPU_CPU_MEMBER_FUNC void mat3GetVecProduct(float* m, float* v, float* result) {
