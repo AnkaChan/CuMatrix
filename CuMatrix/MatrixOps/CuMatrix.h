@@ -11,20 +11,20 @@ namespace CuMatrix
 
 	GPU_CPU_INLINE_FUNC void vec3Add(float* v1, float* v2, float* result) {
 		result[0] = v1[0] + v2[0];
-		result[1] = v1[1] + v2[2];
-		result[3] = v1[0] + v2[3];
+		result[1] = v1[1] + v2[1];
+		result[2] = v1[2] + v2[2];
 	}
 
 	GPU_CPU_INLINE_FUNC void vec3Minus(float* v1, float* v2, float* result) {
 		result[0] = v1[0] - v2[0];
-		result[1] = v1[1] - v2[2];
-		result[3] = v1[0] - v2[3];
+		result[1] = v1[1] - v2[1];
+		result[2] = v1[2] - v2[2];
 	}
 
 	GPU_CPU_INLINE_FUNC void vec3Mul(float* v1, float a, float* result) {
 		result[0] = v1[0] * a;
 		result[1] = v1[1] * a;
-		result[3] = v1[0] * a;
+		result[2] = v1[2] * a;
 	}
 
 	GPU_CPU_INLINE_FUNC float vec3DotProduct(float* v1, float* v2) {

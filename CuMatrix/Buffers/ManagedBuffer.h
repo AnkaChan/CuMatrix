@@ -34,7 +34,7 @@ public:
 	typedef std::shared_ptr<ManagedBuffer<T>> SharedPtr;
 	typedef ManagedBuffer<T>* Ptr;
 
-	ManagedBuffer(size_t in_size, bool in_useCPUBuf = false, void* in_cpuBuffer = nullptr, bool in_cpuBufferOwnership = false)
+	ManagedBuffer(size_t in_size, bool in_useCPUBuf = false, T* in_cpuBuffer = nullptr, bool in_cpuBufferOwnership = false)
 		: size(in_size)
 		, gpuBuffer(in_size, TypeSelceter::selectTypes(T()))
 		, cpuBuffer(in_useCPUBuf ? in_size : 0, TypeSelceter::selectTypes(T()), in_cpuBuffer, (in_useCPUBuf && in_cpuBuffer != nullptr)? in_cpuBufferOwnership : false )
