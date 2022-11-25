@@ -9,6 +9,11 @@ namespace CuMatrix
 	Assuming all the matrix to be column major; 
 */
 
+	GPU_CPU_INLINE_FUNC float vec2CrossProduct(float* v1, float* v2) {
+		return v1[0] * v2[1] - v1[1] * v2[0];
+
+	}
+
 	GPU_CPU_INLINE_FUNC void vec3Add(float* v1, float* v2, float* result) {
 		result[0] = v1[0] + v2[0];
 		result[1] = v1[1] + v2[1];
@@ -47,6 +52,14 @@ namespace CuMatrix
 		return (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	}
 
+	GPU_CPU_INLINE_FUNC float vec3TripleProduct(float* v1, float* v2, float* v3) {
+		float crossProduct[3];
+		// AB* (AC ^ AD);
+		vec3CrossProduct(v2, v3, crossProduct);
+
+		return vec3DotProduct(v1, crossProduct);
+	}
+
 	GPU_CPU_INLINE_FUNC float mat3IJ(float* m, int32_t row, int32_t col) {
 		return m[(3 * col) + row];
 	}
@@ -78,6 +91,7 @@ namespace CuMatrix
 		float  a31 = m[2]; float  a32 = m[5]; float  a33 = m[8];
 		return a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31 - a12 * a21 * a33 - a11 * a23 * a32;
 	}
+
 
 };
 
