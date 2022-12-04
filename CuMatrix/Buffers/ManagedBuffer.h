@@ -62,7 +62,7 @@ public:
 	inline void copyToExternalCPUBuffer(void * pExternalCPUBuffer);
 	inline void toGPU();
 	
-	// return the number of elements, no the memory size messured by bytes
+	// return the number of elements, not the memory size messured by bytes
 	size_t getSize() {
 		return size;
 	}

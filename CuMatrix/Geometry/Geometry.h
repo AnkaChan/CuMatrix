@@ -6,6 +6,26 @@
 
 namespace CuMatrix
 {
+    template<typename DType, int PointVecDims = 3>
+    GPU_CPU_INLINE_FUNC DType tetOrientedVolume(DType* allVertsArray, int32_t* tetVIds) {
+        float* tvs[4] = {
+            allVertsArray + PointVecDims * tetVIds[0],
+            allVertsArray + PointVecDims * tetVIds[1],
+            allVertsArray + PointVecDims * tetVIds[2],
+            allVertsArray + PointVecDims * tetVIds[3],
+        };
+
+        DType AB[3];
+        vec3Minus(tvs[1], tvs[0], AB);
+        DType AC[3];
+        vec3Minus(tvs[2], tvs[0], AC);
+        DType AD[3];
+        vec3Minus(tvs[3], tvs[0], AD);
+
+        DType tetOrientedVol = vec3TripleProduct(AB, AC, AD);
+
+        return tetOrientedVol;
+    }
 
     template<typename DType, int PointVecDims = 3>
     GPU_CPU_INLINE_FUNC bool tetPointInTet(DType* p, DType* allVertsArray, int32_t* tetVIds) {
@@ -33,12 +53,12 @@ namespace CuMatrix
             vec3Minus(tvs[order[i][1]], tvs[order[i][0]], v1);
 
             DType v2[3]; // = vs4[order[i][2]] - vs4[order[i][1]];  // HalfEdgeVec(pHE2);
-            vec3Minus(tvs[order[i][2]], tvs[order[i][0]], v2);
+            vec3Minus(tvs[order[i][2]], tvs[order[i][1]], v2);
 
             DType vp[3];
             vec3Minus(p, tvs[order[i][0]], vp);
 
-            if (vec3TripleProduct(vp, v1, v2) * tetOrientedVol > 0)
+            if (vec3TripleProduct(vp, v1, v2) * tetOrientedVol >= 0)
             {
                 return false;
             }
