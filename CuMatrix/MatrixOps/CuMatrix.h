@@ -9,6 +9,11 @@ namespace CuMatrix
 	Assuming all the matrix to be column major; 
 */
 
+	GPU_CPU_INLINE_FUNC float* vecPtr(float* buffer, int vecPos, int stride) {
+		return buffer + vecPos * stride;
+	}
+
+
 	GPU_CPU_INLINE_FUNC float vec2CrossProduct(float* v1, float* v2) {
 		return v1[0] * v2[1] - v1[1] * v2[0];
 

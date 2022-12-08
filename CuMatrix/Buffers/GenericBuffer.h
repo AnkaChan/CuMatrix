@@ -217,7 +217,7 @@ public:
         return mOwnership;
     }
 
-private:
+protected:
     size_t mSize{ 0 }, mCapacity{ 0 };
     CudaDataType mType;
     void* mBuffer;
@@ -325,7 +325,7 @@ public:
     {
         return *target;
     }
-private:
+protected:
     void* data;
     AllocFunc allocFn;
     FreeFunc freeFn;
@@ -333,3 +333,12 @@ private:
 
 template<typename Class>
 using ManagedClassBuffer = ClassBuffer<ManagedAllocator, ManagedFree, Class>;
+template<typename Class>
+class DeviceClassBuffer : public ClassBuffer<DeviceAllocator, DeviceFree, Class> 
+{
+public:
+
+    void fromCPU(Class* pObj) {
+        CUDA_CHECK_RET(cudaMemcpy(data, pObj, sizeof(Class), cudaMemcpyHostToDevice));
+    }
+};

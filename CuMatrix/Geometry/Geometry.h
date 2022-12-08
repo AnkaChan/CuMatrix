@@ -28,6 +28,21 @@ namespace CuMatrix
     }
 
     template<typename DType, int PointVecDims = 3>
+    GPU_CPU_INLINE_FUNC DType tetOrientedVolume(DType* v1, DType* v2, DType* v3, DType* v4) {
+
+        DType AB[3];
+        vec3Minus(v2, v1, AB);
+        DType AC[3];
+        vec3Minus(v3, v1, AC);
+        DType AD[3];
+        vec3Minus(v4, v1, AD);
+
+        DType tetOrientedVol = vec3TripleProduct(AB, AC, AD);
+
+        return tetOrientedVol;
+    }
+
+    template<typename DType, int PointVecDims = 3>
     GPU_CPU_INLINE_FUNC bool tetPointInTet(DType* p, DType* allVertsArray, int32_t* tetVIds) {
         float* tvs[4] = {
             allVertsArray + PointVecDims * tetVIds[0],

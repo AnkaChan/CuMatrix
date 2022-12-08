@@ -58,9 +58,9 @@ public:
 		return (T*)cpuBuffer.data();
 	}
 
-	inline void toCPU();
+	inline void toCPU(bool sync = true, cudaStream_t stream = 0);
 	inline void copyToExternalCPUBuffer(void * pExternalCPUBuffer);
-	inline void toGPU();
+	inline void toGPU(bool sync = true, cudaStream_t stream = 0);
 	
 	// return the number of elements, not the memory size messured by bytes
 	size_t getSize() {
@@ -79,15 +79,23 @@ private:
 };
 
 template<typename T>
-inline void ManagedBuffer<T>::toCPU()
+inline void ManagedBuffer<T>::toCPU(bool sync = true, cudaStream_t stream = 0)
 {
 	if (getCPUBuffer() == nullptr)
 	{
 		enableCPU();
 	}
-	CUDA_CHECK_RET(cudaMemcpy(
-		cpuBuffer.data(), gpuBuffer.data(), gpuBuffer.nbBytes(), cudaMemcpyDeviceToHost));
 
+	if (sync)
+	{
+		CUDA_CHECK_RET(cudaMemcpy(
+			cpuBuffer.data(), gpuBuffer.data(), gpuBuffer.nbBytes(), cudaMemcpyDeviceToHost));
+	}
+	else
+	{
+		CUDA_CHECK_RET(cudaMemcpyAsync(
+			cpuBuffer.data(), gpuBuffer.data(), gpuBuffer.nbBytes(), cudaMemcpyDeviceToHost, stream));
+	}
 }
 
 template<typename T>
@@ -98,8 +106,17 @@ inline void ManagedBuffer<T>::copyToExternalCPUBuffer(void* pExternalCPUBuffer)
 }
 
 template<typename T>
-inline void ManagedBuffer<T>::toGPU()
+inline void ManagedBuffer<T>::toGPU(bool sync=true, cudaStream_t stream = 0)
 {
-	CUDA_CHECK_RET(cudaMemcpy(
-		gpuBuffer.data(), cpuBuffer.data(), cpuBuffer.nbBytes(), cudaMemcpyHostToDevice));
+	if (sync)
+	{
+		CUDA_CHECK_RET(cudaMemcpy(
+			gpuBuffer.data(), cpuBuffer.data(), cpuBuffer.nbBytes(), cudaMemcpyHostToDevice));
+	}
+	else
+	{
+		CUDA_CHECK_RET(cudaMemcpyAsync(
+			gpuBuffer.data(), cpuBuffer.data(), cpuBuffer.nbBytes(), cudaMemcpyHostToDevice, stream));
+	}
+
 }
