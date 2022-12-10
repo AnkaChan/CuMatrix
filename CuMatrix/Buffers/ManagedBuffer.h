@@ -24,7 +24,9 @@ struct TypeSelceter
 	static CudaDataType selectTypes(float v) { return CudaDataType::kFLOAT; }
 	static CudaDataType selectTypes(short v) { return CudaDataType::kHALF; }
 	static CudaDataType selectTypes(unsigned char v) { return CudaDataType::kINT8; }
+	static CudaDataType selectTypes(int8_t v) { return CudaDataType::kINT8; }
 	static CudaDataType selectTypes(bool v) { return CudaDataType::kBOOL; }
+	static CudaDataType selectTypes(void* v) { return CudaDataType::kPOINTER; }
 };
 
 template<typename T>
@@ -58,10 +60,11 @@ public:
 		return (T*)cpuBuffer.data();
 	}
 
+	// when stream = 0, sync option won't work
 	inline void toCPU(bool sync = true, cudaStream_t stream = 0);
-	inline void copyToExternalCPUBuffer(void * pExternalCPUBuffer);
 	inline void toGPU(bool sync = true, cudaStream_t stream = 0);
-	
+	inline void copyToExternalCPUBuffer(void* pExternalCPUBuffer);
+
 	// return the number of elements, not the memory size messured by bytes
 	size_t getSize() {
 		return size;

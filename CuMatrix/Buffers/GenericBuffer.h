@@ -16,7 +16,11 @@ enum class CudaDataType : int32_t
     kINT32 = 3,
 
     //! 8-bit boolean. 0 = false, 1 = true, other values undefined.
-    kBOOL = 4
+    kBOOL = 4,
+
+    //! 64-bit (on x64 system)
+    kPOINTER = 5
+
 };
 
 
@@ -133,6 +137,7 @@ public:
     {
         switch (t)
         {
+        case CudaDataType::kPOINTER: return 8;
         case CudaDataType::kINT32: return 4;
         case CudaDataType::kFLOAT: return 4;
         case CudaDataType::kHALF: return 2;
