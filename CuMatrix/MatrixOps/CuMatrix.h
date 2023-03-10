@@ -14,6 +14,12 @@ namespace CuMatrix
 		return buffer + vecPos * stride;
 	}
 
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec3Set(DType* v, DType val) {
+		v[0] = val;
+		v[1] = val;
+		v[2] = val;
+	}
 
 	template <typename DType>
 	GPU_CPU_INLINE_FUNC DType vec2CrossProduct(DType* v1, DType* v2) {
@@ -34,6 +40,7 @@ namespace CuMatrix
 		result[1] = v1[1] - v2[1];
 		result[2] = v1[2] - v2[2];
 	}
+
 
 	template <typename DType>
 	GPU_CPU_INLINE_FUNC void vec3Mul(DType* v1, DType a, DType* result) {
