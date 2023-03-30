@@ -82,7 +82,7 @@ private:
 };
 
 template<typename T>
-inline void ManagedBuffer<T>::toCPU(bool sync = true, cudaStream_t stream = 0)
+inline void ManagedBuffer<T>::toCPU(bool sync, cudaStream_t stream)
 {
 	if (getCPUBuffer() == nullptr)
 	{
@@ -109,7 +109,7 @@ inline void ManagedBuffer<T>::copyToExternalCPUBuffer(void* pExternalCPUBuffer)
 }
 
 template<typename T>
-inline void ManagedBuffer<T>::toGPU(bool sync=true, cudaStream_t stream = 0)
+inline void ManagedBuffer<T>::toGPU(bool sync, cudaStream_t stream)
 {
 	if (sync)
 	{
