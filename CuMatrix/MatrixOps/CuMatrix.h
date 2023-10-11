@@ -112,10 +112,45 @@ namespace CuMatrix
 
 	template <typename DType>
 	GPU_CPU_INLINE_FUNC DType mat3Determinant(DType* m) {
-		DType  a11 = m[0]; DType  a12 = m[3]; DType  a13 = m[6];
-		DType  a21 = m[1]; DType  a22 = m[4]; DType  a23 = m[7];
-		DType  a31 = m[2]; DType  a32 = m[5]; DType  a33 = m[8];
+		const DType  a11 = m[0]; const DType  a12 = m[3]; const DType  a13 = m[6];
+		const DType  a21 = m[1]; const DType  a22 = m[4]; const DType  a23 = m[7];
+		const DType  a31 = m[2]; const DType  a32 = m[5]; const DType  a33 = m[8];
 		return a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31 - a12 * a21 * a33 - a11 * a23 * a32;
+	}
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC bool solve3x3(const DType* m, const DType * b, DType* out)
+	{
+		const DType  a11 = m[0]; const DType  a12 = m[3]; const DType  a13 = m[6];
+		const DType  a21 = m[1]; const DType  a22 = m[4]; const DType  a23 = m[7];
+		const DType  a31 = m[2]; const DType  a32 = m[5]; const DType  a33 = m[8];
+
+		const DType i11 = a33 * a22 - a32 * a23;
+		const DType i12 = -(a33 * a12 - a32 * a13);
+		const DType i13 = a23 * a12 - a22 * a13;
+
+		const DType det = (a11 * i11 + a21 * i12 + a31 * i13);
+
+		if (IS_ZERO_APPROX(det))
+		{
+			return false;
+		}
+
+		const DType deti = 1.0 / det;
+
+		const DType i21 = -(a33 * a21 - a31 * a23);
+		const DType i22 = a33 * a11 - a31 * a13;
+		const DType i23 = -(a23 * a11 - a21 * a13);
+
+		const DType i31 = a32 * a21 - a31 * a22;
+		const DType i32 = -(a32 * a11 - a31 * a12);
+		const DType i33 = a22 * a11 - a21 * a12;
+
+		out[0] = deti * (i11 * b[0] + i12 * b[1] + i13 * b[2]);
+		out[1] = deti * (i21 * b[0] + i22 * b[1] + i23 * b[2]);
+		out[2] = deti * (i31 * b[0] + i32 * b[1] + i33 * b[2]);
+
+		return true;
 	}
 
 
@@ -130,6 +165,7 @@ __global__ void parallel_for_3x3_matOps(DType* matsFlatten, int numMats, Func fu
 		func(matsFlatten + 9 * i, i);
 	}
 }
+
 
 // multiplying 2 mat with abitary dimensions
 template <typename DType>
@@ -148,3 +184,5 @@ __global__ void multiplicateMatrixOnDevice(DType* array_A, DType* array_B, DType
 		array_C[iy * N_p + ix] = sum;
 	}
 }
+
+

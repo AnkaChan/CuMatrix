@@ -28,3 +28,6 @@
             abort();                                                                                                   \
         }                                                                                                              \
     } while (0)
+
+#define CMP_EPSILON 0.00001f
+#define CMP_EPSILON2 (CMP_EPSILON * CMP_EPSILON)
