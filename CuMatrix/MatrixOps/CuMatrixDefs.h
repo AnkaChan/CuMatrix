@@ -31,3 +31,4 @@
 
 #define CMP_EPSILON 0.00001f
 #define CMP_EPSILON2 (CMP_EPSILON * CMP_EPSILON)
+#define IS_ZERO_APPROX(x) (fabs(x) < CMP_EPSILON)

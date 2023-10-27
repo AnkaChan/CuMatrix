@@ -7,8 +7,8 @@
 namespace CuMatrix
 {
     template<typename DType, int PointVecDims = 3>
-    GPU_CPU_INLINE_FUNC DType tetOrientedVolume(DType* allVertsArray, int32_t* tetVIds) {
-        float* tvs[4] = {
+    GPU_CPU_INLINE_FUNC DType tetOrientedVolume(const DType* allVertsArray, const int32_t* tetVIds) {
+        const DType* tvs[4] = {
             allVertsArray + PointVecDims * tetVIds[0],
             allVertsArray + PointVecDims * tetVIds[1],
             allVertsArray + PointVecDims * tetVIds[2],
@@ -28,7 +28,7 @@ namespace CuMatrix
     }
 
     template<typename DType, int PointVecDims = 3>
-    GPU_CPU_INLINE_FUNC DType tetOrientedVolume(DType* v1, DType* v2, DType* v3, DType* v4) {
+    GPU_CPU_INLINE_FUNC DType tetOrientedVolume(const DType* v1, const DType* v2, const DType* v3, const DType* v4) {
 
         DType AB[3];
         vec3Minus(v2, v1, AB);
@@ -43,10 +43,10 @@ namespace CuMatrix
     }
 
     template<typename DType, int PointVecDims = 3>
-    GPU_CPU_INLINE_FUNC void  tetCentroid(DType* p, DType* allVertsArray, int32_t* tetVIds) {
+    GPU_CPU_INLINE_FUNC void  tetCentroid(DType* p, const DType* allVertsArray, const int32_t* tetVIds) {
         vec3Set(p, DType(0.f));
 
-        float* tvs[4] = {
+        const DType* tvs[4] = {
             allVertsArray + PointVecDims * tetVIds[0],
             allVertsArray + PointVecDims * tetVIds[1],
             allVertsArray + PointVecDims * tetVIds[2],
@@ -62,8 +62,8 @@ namespace CuMatrix
     }
 
     template<typename DType, int PointVecDims = 3>
-    GPU_CPU_INLINE_FUNC bool tetPointInTet(DType* p, DType* allVertsArray, int32_t* tetVIds) {
-        float* tvs[4] = {
+    GPU_CPU_INLINE_FUNC bool tetPointInTet(const DType* p, const DType* allVertsArray, const int32_t* tetVIds) {
+        const DType* tvs[4] = {
             allVertsArray + PointVecDims * tetVIds[0],
             allVertsArray + PointVecDims * tetVIds[1],
             allVertsArray + PointVecDims * tetVIds[2],
@@ -102,8 +102,8 @@ namespace CuMatrix
     }
 
     template<typename DType, int PointVecDims = 3>
-    GPU_CPU_INLINE_FUNC bool tetPointBarycentricsInTet(DType* p, DType* allVertsArray, int32_t* tetVIds, DType* barycentrics) {
-        float* tvs[4] = {
+    GPU_CPU_INLINE_FUNC bool tetPointBarycentricsInTet(const DType* p, const  DType* allVertsArray, const int32_t* tetVIds, DType* barycentrics) {
+        const DType* tvs[4] = {
             allVertsArray + PointVecDims * tetVIds[0],
             allVertsArray + PointVecDims * tetVIds[1],
             allVertsArray + PointVecDims * tetVIds[2],
@@ -155,8 +155,8 @@ namespace CuMatrix
     void buildOrthonormalBasis(const DType* n, DType* b1, DType* b2)
     {
         if (n[2] < 0.) {
-            const float a = 1.0f / (1.0f - n[2]);
-            const float b = n[0] * n[1] * a;
+            const DType a = 1.0f / (1.0f - n[2]);
+            const DType b = n[0] * n[1] * a;
             b1[0] = 1.0f - n[0] * n[0] * a;
             b1[1] = -b;
             b1[2] = n[0];
@@ -166,8 +166,8 @@ namespace CuMatrix
             b2[2] = -n[1];
         }
         else {
-            const float a = 1.0f / (1.0f + n[2]);
-            const float b = -n[0] * n[1] * a;
+            const DType a = 1.0f / (1.0f + n[2]);
+            const DType b = -n[0] * n[1] * a;
             b1[0] = 1.0f - n[0] * n[0] * a;
             b1[1] = b;
             b1[2] = -n[0];
