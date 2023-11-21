@@ -19,8 +19,10 @@ enum class CudaDataType : int32_t
     kBOOL = 4,
 
     //! 64-bit (on x64 system)
-    kPOINTER = 5
+    kPOINTER = 5,
 
+    //! variable size
+    kSTRUCT = 6
 };
 
 
@@ -48,13 +50,47 @@ public:
     //! \brief Construct an empty buffer.
     //!
     //! 
-    GenericBuffer(CudaDataType type = CudaDataType::kFLOAT)
+    GenericBuffer(size_t elementSize, CudaDataType type = CudaDataType::kFLOAT)
         : mSize(0)
         , mCapacity(0)
+        , mElementSize(elementSize)
         , mType(type)
         , mBuffer(nullptr)
         , mOwnership(true)
     {
+    }
+
+    GenericBuffer(GenericBuffer&& buf)
+        : mSize(buf.mSize)
+        , mCapacity(buf.mCapacity)
+        , mElementSize(buf.getElementSize())
+        , mType(buf.mType)
+        , mBuffer(buf.mBuffer)
+        , mOwnership(buf.getOwnerShip())
+    {
+        buf.mSize = 0;
+        buf.mCapacity = 0;
+        buf.mType = CudaDataType::kFLOAT;
+        buf.mBuffer = nullptr;
+    }
+
+    // takeOwnership will be ignored if pPreAllocBuf is nullptr
+    GenericBuffer(size_t size, CudaDataType type, size_t elementSize, void* pPreAllocBuf = nullptr, bool takeOwnership = false)
+        : mSize(size)
+        , mCapacity(size)
+        , mElementSize(elementSize)
+        , mType(type)
+    {
+        if (pPreAllocBuf == nullptr && size)
+        {
+            initializeWithSpace(size, type);
+        }
+        else
+        {
+            mOwnership = takeOwnership;
+            mBuffer = pPreAllocBuf;
+
+        }
     }
 
     ////!
@@ -84,37 +120,6 @@ public:
         }
     }
 
-    GenericBuffer(GenericBuffer&& buf)
-        : mSize(buf.mSize)
-        , mCapacity(buf.mCapacity)
-        , mType(buf.mType)
-        , mBuffer(buf.mBuffer)
-        , mOwnership(buf.getOwnerShip())
-    {
-        buf.mSize = 0;
-        buf.mCapacity = 0;
-        buf.mType = CudaDataType::kFLOAT;
-        buf.mBuffer = nullptr;
-    }
-
-    // takeOwnership will be ignored if pPreAllocBuf is nullptr
-    GenericBuffer(size_t size, CudaDataType type, void * pPreAllocBuf = nullptr, bool takeOwnership=false)
-        : mSize(size)
-        , mCapacity(size)
-        , mType(type)
-    {
-        if (pPreAllocBuf == nullptr)
-        {
-            initializeWithSpace(size, type);
-        }
-        else
-        {
-            mOwnership = takeOwnership;
-            mBuffer = pPreAllocBuf;
-
-        }
-    }
-
     GenericBuffer& operator=(GenericBuffer&& buf)
     {
         if (this != &buf)
@@ -133,18 +138,10 @@ public:
         return *this;
     }
 
-    static inline uint32_t getElementSize(CudaDataType t) noexcept
+    inline uint32_t getElementSize() const
     {
-        switch (t)
-        {
-        case CudaDataType::kPOINTER: return 8;
-        case CudaDataType::kINT32: return 4;
-        case CudaDataType::kFLOAT: return 4;
-        case CudaDataType::kHALF: return 2;
-        case CudaDataType::kBOOL:
-        case CudaDataType::kINT8: return 1;
-        }
-        return 0;
+        
+        return mElementSize;
     }
 
     //!
@@ -176,7 +173,7 @@ public:
     //!
     size_t nbBytes() const
     {
-        return this->size() * getElementSize(mType);
+        return this->size() * getElementSize();
     }
 
     //!
@@ -223,7 +220,9 @@ public:
     }
 
 protected:
+    // size: number of elements, capacity: 
     size_t mSize{ 0 }, mCapacity{ 0 };
+    size_t mElementSize{ 0 };
     CudaDataType mType;
     void* mBuffer;
     AllocFunc allocFn;

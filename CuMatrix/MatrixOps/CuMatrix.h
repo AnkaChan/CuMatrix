@@ -2,6 +2,8 @@
 #include "cuda_runtime.h"
 #include "CuMatrixDefs.h"
 #include "device_launch_parameters.h"
+#define SQR(x) ((x) * (x))
+#define CUBE(x) ((x) * (x) * (x))
 
 namespace CuMatrix
 {
@@ -47,6 +49,13 @@ namespace CuMatrix
 		result[0] = v1[0] * a;
 		result[1] = v1[1] * a;
 		result[2] = v1[2] * a;
+	}
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec3MulAddTo(const DType* v1, const DType a, DType* result) {
+		result[0] += v1[0] * a;
+		result[1] += v1[1] * a;
+		result[2] += v1[2] * a;
 	}
 
 	template <typename DType>
@@ -119,6 +128,17 @@ namespace CuMatrix
 	}
 
 	template <typename DType>
+	GPU_CPU_INLINE_FUNC DType mat3FNormSquare(const DType* m) {
+		const DType  a11 = m[0]; const DType  a12 = m[3]; const DType  a13 = m[6];
+		const DType  a21 = m[1]; const DType  a22 = m[4]; const DType  a23 = m[7];
+		const DType  a31 = m[2]; const DType  a32 = m[5]; const DType  a33 = m[8];
+		return a11 * a11 + a12 * a12 + a13 * a13
+			+ a21 * a21 + a22 * a22 + a23 * a23
+			+ a31 * a31 + a32 * a32 + a33 * a33;
+	}
+
+
+	template <typename DType>
 	GPU_CPU_INLINE_FUNC bool solve3x3(const DType* m, const DType * b, DType* out)
 	{
 		const DType  a11 = m[0]; const DType  a12 = m[3]; const DType  a13 = m[6];
@@ -168,6 +188,9 @@ namespace CuMatrix
 
 		if (det < CMP_EPSILON * (abs(a11 * i11) + abs(a21 * i12) + abs(a31 * i13)))
 		{
+			out[0] = b[0];
+			out[1] = b[1];
+			out[2] = b[2];
 			return false;
 		}
 
@@ -186,6 +209,60 @@ namespace CuMatrix
 		out[2] = deti * (i31 * b[0] + i32 * b[1] + i33 * b[2]);
 
 		return true;
+	}
+
+	template <typename DType>
+	struct Mat9x9
+	{
+		// column major
+		DType data[81];
+		GPU_CPU_INLINE_FUNC DType* col(int iCol) { return data + iCol * 9; }
+		GPU_CPU_INLINE_FUNC DType& operator() (int iRow, int iCol) { return data[iCol * 9 + iRow]; }
+
+		GPU_CPU_INLINE_FUNC void multiplyBy(const DType mul) {
+			for (size_t iCol = 0; iCol < 9; iCol++)
+			{
+				for (size_t iRow = 0; iRow < 9; iRow++) {
+					data[iCol * 9 + iRow] *= mul;
+				}
+			}
+		}
+	};
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec9OuterProduct(const DType* v1, const DType* v2, Mat9x9<DType>& mat) {
+		for (int iCol = 0; iCol < 9; iCol++)
+		{
+			for (int iRow = 0; iRow < 9; iRow++) {
+				mat(iRow, iCol) = v1[iRow] * v2[iCol];
+			}
+		}
+	}
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec9Mul(const DType* v1, const DType a, DType* result) {
+		result[0] = v1[0] * a;
+		result[1] = v1[1] * a;
+		result[2] = v1[2] * a;
+		result[3] = v1[3] * a;
+		result[4] = v1[4] * a;
+		result[5] = v1[5] * a;
+		result[6] = v1[6] * a;
+		result[7] = v1[7] * a;
+		result[8] = v1[8] * a;
+	}
+	
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec9Add(const DType* v1, const DType* v2, DType* result) {
+		result[0] = v1[0] + v2[0];
+		result[1] = v1[1] + v2[1];
+		result[2] = v1[2] + v2[2];
+		result[3] = v1[3] + v2[3];
+		result[4] = v1[4] + v2[4];
+		result[5] = v1[5] + v2[5];
+		result[6] = v1[6] + v2[6];
+		result[7] = v1[7] + v2[7];
+		result[8] = v1[8] + v2[8];
 	}
 };
 

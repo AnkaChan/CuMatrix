@@ -19,14 +19,40 @@
 //kBOOL = 4
 struct TypeSelceter
 {
-	static CudaDataType selectTypes(long v) { return  CudaDataType::kINT32; }
-	static CudaDataType selectTypes(int32_t v) { return  CudaDataType::kINT32; }
-	static CudaDataType selectTypes(float v) { return CudaDataType::kFLOAT; }
-	static CudaDataType selectTypes(short v) { return CudaDataType::kHALF; }
-	static CudaDataType selectTypes(unsigned char v) { return CudaDataType::kINT8; }
-	static CudaDataType selectTypes(int8_t v) { return CudaDataType::kINT8; }
-	static CudaDataType selectTypes(bool v) { return CudaDataType::kBOOL; }
-	static CudaDataType selectTypes(void* v) { return CudaDataType::kPOINTER; }
+	//static CudaDataType selectTypes(long v) { return  CudaDataType::kINT32; }
+	//static CudaDataType selectTypes(int32_t v) { return  CudaDataType::kINT32; }
+	//static CudaDataType selectTypes(float v) {return CudaDataType::kFLOAT; } }
+	//static CudaDataType selectTypes(short v) { return CudaDataType::kHALF; }
+	//static CudaDataType selectTypes(unsigned char v) { return CudaDataType::kINT8; }
+	//static CudaDataType selectTypes(int8_t v) { return CudaDataType::kINT8; }
+	//static CudaDataType selectTypes(bool v) { return CudaDataType::kBOOL; }
+	//static CudaDataType selectTypes(void* v) { return CudaDataType::kPOINTER; }
+
+	template <typename T>
+	static CudaDataType selectTypes() { 
+		if constexpr (std::is_pointer_v<T>) return CudaDataType::kPOINTER;
+		else if constexpr (std::is_same_v<T, long>) return CudaDataType::kINT32;
+		else if constexpr (std::is_same_v<T, int32_t>) return CudaDataType::kINT32;
+		else if constexpr (std::is_same_v<T, float>) return CudaDataType::kFLOAT;
+		else if constexpr (std::is_same_v<T, short>) return CudaDataType::kHALF;
+		else if constexpr (std::is_same_v<T, unsigned char>) return CudaDataType::kINT8;
+		else if constexpr (std::is_same_v<T, int8_t>) return CudaDataType::kINT8;
+		else if constexpr (std::is_same_v<T, bool>) return CudaDataType::kBOOL;
+		else return CudaDataType::kSTRUCT;
+	}
+
+	template <typename T>
+	static size_t getTypeSize() {
+		if constexpr (std::is_pointer_v<T>) return 8;
+		else if constexpr (std::is_same_v<T, long>) return 4;
+		else if constexpr (std::is_same_v<T, int32_t>) return 4;
+		else if constexpr (std::is_same_v<T, float>) return 4;
+		else if constexpr (std::is_same_v<T, short>) return 2;
+		else if constexpr (std::is_same_v<T, unsigned char>) return 1;
+		else if constexpr (std::is_same_v<T, int8_t>) return 1;
+		else if constexpr (std::is_same_v<T, bool>) return 1;
+		else return sizeof(T);
+	}
 };
 
 template<typename T>
@@ -38,13 +64,15 @@ public:
 
 	ManagedBuffer(size_t in_size, bool in_useCPUBuf = false, T* in_cpuBuffer = nullptr, bool in_cpuBufferOwnership = false)
 		: size(in_size)
-		, gpuBuffer(in_size, TypeSelceter::selectTypes(T()))
-		, cpuBuffer(in_useCPUBuf ? in_size : 0, TypeSelceter::selectTypes(T()), in_cpuBuffer, (in_useCPUBuf && in_cpuBuffer != nullptr)? in_cpuBufferOwnership : false )
+		, gpuBuffer(in_size, TypeSelceter::selectTypes<T>(), TypeSelceter::getTypeSize<T>())
+		, cpuBuffer(in_useCPUBuf ? in_size : 0, TypeSelceter::selectTypes<T>(), TypeSelceter::getTypeSize<T>(),
+			in_cpuBuffer, (in_useCPUBuf && in_cpuBuffer != nullptr)? in_cpuBufferOwnership : false )
 	{
 		if (in_cpuBuffer != nullptr)
 		{
 			// std::cout << "Registering address: " << in_cpuBuffer << std::endl;
 			CUDA_CHECK_RET(cudaHostRegister(in_cpuBuffer, cpuBuffer.nbBytes(), cudaHostRegisterDefault));
+			//cudaHostRegister(in_cpuBuffer, cpuBuffer.nbBytes(), cudaHostRegisterDefault);
 
 		}
 	};
