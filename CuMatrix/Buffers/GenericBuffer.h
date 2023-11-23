@@ -176,6 +176,11 @@ public:
         return this->size() * getElementSize();
     }
 
+    size_t nbBytes(size_t numElements) const
+    {
+        return numElements * getElementSize();
+    }
+
     //!
     //! \brief Resizes the buffer. This is a no-op if the new size is smaller than or equal to the current capacity.
     //!

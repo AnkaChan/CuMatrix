@@ -24,6 +24,20 @@ namespace CuMatrix
 	}
 
 	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec3Set(DType* v, const  DType val1, const  DType val2, const  DType val3) {
+		v[0] = val1;
+		v[1] = val2;
+		v[2] = val3;
+	}
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec3Set(DType* out, const DType* in) {
+		out[0] = in[0];
+		out[1] = in[1];
+		out[2] = in[2];
+	}
+
+	template <typename DType>
 	GPU_CPU_INLINE_FUNC DType vec2CrossProduct(const  DType* v1, const  DType* v2) {
 		return v1[0] * v2[1] - v1[1] * v2[0];
 
@@ -56,6 +70,14 @@ namespace CuMatrix
 		result[0] += v1[0] * a;
 		result[1] += v1[1] * a;
 		result[2] += v1[2] * a;
+	}
+
+	// result = a + l * v
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec3lerp(const DType* a, const DType l, const DType* v, DType* result) {
+		result[0] = a[0] + l * v[0];
+		result[1] = a[1] + l * v[1];
+		result[2] = a[2] + l * v[2];
 	}
 
 	template <typename DType>

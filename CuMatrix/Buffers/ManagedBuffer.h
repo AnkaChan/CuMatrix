@@ -91,6 +91,11 @@ public:
 	// when stream = 0, sync option won't work
 	inline void toCPU(bool sync = true, cudaStream_t stream = 0);
 	inline void toGPU(bool sync = true, cudaStream_t stream = 0);
+
+	// only copy the first numElements elements
+	inline void toCPU(size_t numElements, bool sync = true, cudaStream_t stream = 0);
+	inline void toGPU(size_t numElements, bool sync = true, cudaStream_t stream = 0);
+
 	inline void copyToExternalCPUBuffer(void* pExternalCPUBuffer);
 
 	// return the number of elements, not the memory size messured by bytes
@@ -130,6 +135,26 @@ inline void ManagedBuffer<T>::toCPU(bool sync, cudaStream_t stream)
 }
 
 template<typename T>
+inline void ManagedBuffer<T>::toCPU(size_t numElements, bool sync, cudaStream_t stream)
+{
+	if (getCPUBuffer() == nullptr)
+	{
+		enableCPU();
+	}
+
+	if (sync)
+	{
+		CUDA_CHECK_RET(cudaMemcpy(
+			cpuBuffer.data(), gpuBuffer.data(), gpuBuffer.nbBytes(numElements), cudaMemcpyDeviceToHost));
+	}
+	else
+	{
+		CUDA_CHECK_RET(cudaMemcpyAsync(
+			cpuBuffer.data(), gpuBuffer.data(), gpuBuffer.nbBytes(numElements), cudaMemcpyDeviceToHost, stream));
+	}
+}
+
+template<typename T>
 inline void ManagedBuffer<T>::copyToExternalCPUBuffer(void* pExternalCPUBuffer)
 {
 	CUDA_CHECK_RET(cudaMemcpy(
@@ -150,4 +175,19 @@ inline void ManagedBuffer<T>::toGPU(bool sync, cudaStream_t stream)
 			gpuBuffer.data(), cpuBuffer.data(), cpuBuffer.nbBytes(), cudaMemcpyHostToDevice, stream));
 	}
 
+}
+
+template<typename T>
+inline void ManagedBuffer<T>::toGPU(size_t numElements, bool sync, cudaStream_t stream)
+{
+	if (sync)
+	{
+		CUDA_CHECK_RET(cudaMemcpy(
+			gpuBuffer.data(), cpuBuffer.data(), cpuBuffer.nbBytes(numElements), cudaMemcpyHostToDevice));
+	}
+	else
+	{
+		CUDA_CHECK_RET(cudaMemcpyAsync(
+			gpuBuffer.data(), cpuBuffer.data(), cpuBuffer.nbBytes(numElements), cudaMemcpyHostToDevice, stream));
+	}
 }
