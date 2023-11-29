@@ -6,13 +6,41 @@
 
 namespace CuMatrix
 {
-    template<typename DType, int PointVecDims = 3>
+    template<typename DType>
+    GPU_CPU_INLINE_FUNC void faceOrientedArea(const DType* a, const DType* b, const DType* c, DType* out) 
+    {
+        DType AB[3];
+        vec3Minus(b, a, AB);
+        DType AC[3];
+        vec3Minus(c, a, AC);
+
+        vec3CrossProduct(AB, AC, out);
+    }
+
+    template<typename DType>
+    GPU_CPU_INLINE_FUNC void faceNormal(const DType* a, const DType* b, const DType* c, DType* out)
+    {
+        faceOrientedArea(a, b, c, out);
+        vec3Normalize(out);
+    }
+
+    template<typename DType, int PointVecStride = 3>
+    GPU_CPU_INLINE_FUNC void faceNormal(const DType* allVertsArray, const int32_t* faceVIds, DType* out)
+    {
+        const DType* a = allVertsArray + PointVecStride * faceVIds[0];
+        const DType* b = allVertsArray + PointVecStride * faceVIds[1];
+        const DType* c = allVertsArray + PointVecStride * faceVIds[2];
+
+        faceOrientedNormal(a, b, c, out);
+    }
+
+    template<typename DType, int PointVecStride = 3>
     GPU_CPU_INLINE_FUNC DType tetOrientedVolume(const DType* allVertsArray, const int32_t* tetVIds) {
         const DType* tvs[4] = {
-            allVertsArray + PointVecDims * tetVIds[0],
-            allVertsArray + PointVecDims * tetVIds[1],
-            allVertsArray + PointVecDims * tetVIds[2],
-            allVertsArray + PointVecDims * tetVIds[3],
+            allVertsArray + PointVecStride * tetVIds[0],
+            allVertsArray + PointVecStride * tetVIds[1],
+            allVertsArray + PointVecStride * tetVIds[2],
+            allVertsArray + PointVecStride * tetVIds[3],
         };
 
         DType AB[3];
@@ -27,7 +55,7 @@ namespace CuMatrix
         return tetOrientedVol;
     }
 
-    template<typename DType, int PointVecDims = 3>
+    template<typename DType>
     GPU_CPU_INLINE_FUNC DType tetOrientedVolume(const DType* v1, const DType* v2, const DType* v3, const DType* v4) {
 
         DType AB[3];
@@ -42,15 +70,15 @@ namespace CuMatrix
         return tetOrientedVol;
     }
 
-    template<typename DType, int PointVecDims = 3>
+    template<typename DType, int PointVecStride = 3>
     GPU_CPU_INLINE_FUNC void  tetCentroid(DType* p, const DType* allVertsArray, const int32_t* tetVIds) {
         vec3Set(p, DType(0.f));
 
         const DType* tvs[4] = {
-            allVertsArray + PointVecDims * tetVIds[0],
-            allVertsArray + PointVecDims * tetVIds[1],
-            allVertsArray + PointVecDims * tetVIds[2],
-            allVertsArray + PointVecDims * tetVIds[3],
+            allVertsArray + PointVecStride * tetVIds[0],
+            allVertsArray + PointVecStride * tetVIds[1],
+            allVertsArray + PointVecStride * tetVIds[2],
+            allVertsArray + PointVecStride * tetVIds[3],
         };
         vec3Add(p, tvs[0], p);
         vec3Add(p, tvs[1], p);
@@ -61,13 +89,13 @@ namespace CuMatrix
 
     }
 
-    template<typename DType, int PointVecDims = 3>
+    template<typename DType, int PointVecStride = 3>
     GPU_CPU_INLINE_FUNC bool tetPointInTet(const DType* p, const DType* allVertsArray, const int32_t* tetVIds) {
         const DType* tvs[4] = {
-            allVertsArray + PointVecDims * tetVIds[0],
-            allVertsArray + PointVecDims * tetVIds[1],
-            allVertsArray + PointVecDims * tetVIds[2],
-            allVertsArray + PointVecDims * tetVIds[3],
+            allVertsArray + PointVecStride * tetVIds[0],
+            allVertsArray + PointVecStride * tetVIds[1],
+            allVertsArray + PointVecStride * tetVIds[2],
+            allVertsArray + PointVecStride * tetVIds[3],
         };
 
         DType AB[3];
@@ -101,13 +129,13 @@ namespace CuMatrix
         return true;
     }
 
-    template<typename DType, int PointVecDims = 3>
+    template<typename DType, int PointVecStride = 3>
     GPU_CPU_INLINE_FUNC bool tetPointBarycentricsInTet(const DType* p, const  DType* allVertsArray, const int32_t* tetVIds, DType* barycentrics) {
         const DType* tvs[4] = {
-            allVertsArray + PointVecDims * tetVIds[0],
-            allVertsArray + PointVecDims * tetVIds[1],
-            allVertsArray + PointVecDims * tetVIds[2],
-            allVertsArray + PointVecDims * tetVIds[3],
+            allVertsArray + PointVecStride * tetVIds[0],
+            allVertsArray + PointVecStride * tetVIds[1],
+            allVertsArray + PointVecStride * tetVIds[2],
+            allVertsArray + PointVecStride * tetVIds[3],
         };
 
         DType AB[3];
@@ -140,13 +168,13 @@ namespace CuMatrix
         return true;
     }
 
-    template<typename DType, int PointVecDims = 3>
+    template<typename DType, int PointVecStride = 3>
     GPU_CPU_INLINE_FUNC void  triangleOrientedArea(DType* allVertsArray, int32_t v1, int32_t v2, int32_t v3, DType* orientedArea) {
         DType vec1[3]; // = vs4[order[i][1]] - vs4[order[i][0]]; // HalfEdgeVec(pHE1);
-        vec3Minus(allVertsArray + PointVecDims * v2, allVertsArray + PointVecDims * v1, vec1);
+        vec3Minus(allVertsArray + PointVecStride * v2, allVertsArray + PointVecStride * v1, vec1);
 
         DType vec2[3]; // = vs4[order[i][2]] - vs4[order[i][1]];  // HalfEdgeVec(pHE2);
-        vec3Minus(allVertsArray + PointVecDims * v3, allVertsArray + PointVecDims * v2, vec2);
+        vec3Minus(allVertsArray + PointVecStride * v3, allVertsArray + PointVecStride * v2, vec2);
         vec3CrossProduct(vec1, vec2, orientedArea);
     }
 

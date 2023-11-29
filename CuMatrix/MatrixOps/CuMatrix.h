@@ -105,12 +105,33 @@ namespace CuMatrix
 	}
 
 	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec3Normalize(DType* v) {
+		const DType norm = vec3Norm(v);
+
+		v[0] /= norm;
+		v[1] /= norm;
+		v[2] /= norm;
+	}
+
+	// aka mixed product
+	template <typename DType>
 	GPU_CPU_INLINE_FUNC DType vec3TripleProduct(const DType* v1, const DType* v2, const DType* v3) {
 		DType crossProduct[3];
 		// AB* (AC ^ AD);
 		vec3CrossProduct(v2, v3, crossProduct);
 
 		return vec3DotProduct(v1, crossProduct);
+	}
+
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec3OuterProduct(const DType* v1, const DType* v2, DType * mat) {
+		for (int iCol = 0; iCol < 3; iCol++)
+		{
+			for (int iRow = 0; iRow < 3; iRow++) {
+				mat[iRow + 3 * iCol] = v1[iRow] * v2[iCol];
+			}
+		}
 	}
 
 	template <typename DType>
@@ -286,7 +307,24 @@ namespace CuMatrix
 		result[7] = v1[7] + v2[7];
 		result[8] = v1[8] + v2[8];
 	}
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec9MulAddTo(const DType* v1, const DType a, DType* result) {
+		result[0] += v1[0] * a;
+		result[1] += v1[1] * a;
+		result[2] += v1[2] * a;
+
+		result[3] += v1[3] * a;
+		result[4] += v1[4] * a;
+		result[5] += v1[5] * a;
+
+		result[6] += v1[6] * a;
+		result[7] += v1[7] * a;
+		result[8] += v1[8] * a;
+	}
 };
+
+
 
 template <class Func, typename DType>
 __global__ void parallel_for_3x3_matOps(DType* matsFlatten, int numMats, Func func) {
