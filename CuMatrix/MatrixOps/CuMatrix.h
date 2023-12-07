@@ -5,6 +5,12 @@
 #define SQR(x) ((x) * (x))
 #define CUBE(x) ((x) * (x) * (x))
 
+#ifndef __CUDACC__
+#include <assert.h>
+#else
+#include <cassert>
+#endif
+
 namespace CuMatrix
 {
 /*
@@ -35,12 +41,6 @@ namespace CuMatrix
 		out[0] = in[0];
 		out[1] = in[1];
 		out[2] = in[2];
-	}
-
-	template <typename DType>
-	GPU_CPU_INLINE_FUNC DType vec2CrossProduct(const  DType* v1, const  DType* v2) {
-		return v1[0] * v2[1] - v1[1] * v2[0];
-
 	}
 
 	template <typename DType>
@@ -132,6 +132,21 @@ namespace CuMatrix
 				mat[iRow + 3 * iCol] = v1[iRow] * v2[iCol];
 			}
 		}
+	}
+
+	/*
+	* Vec2
+	*/
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC DType vec2CrossProduct(const  DType* v1, const  DType* v2) {
+		return v1[0] * v2[1] - v1[1] * v2[0];
+
+	}
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC DType vec2Norm(const  DType* v) {
+		return sqrtf(v[0] * v[0] + v[1] * v[1]);;
+
 	}
 
 	template <typename DType>
@@ -321,6 +336,40 @@ namespace CuMatrix
 		result[6] += v1[6] * a;
 		result[7] += v1[7] * a;
 		result[8] += v1[8] * a;
+	}
+
+	// m1 : r x c, column major
+	template <typename DType, int r, int c>
+	GPU_CPU_INLINE_FUNC DType & accessMatElement(DType* m, int i, int j)
+	{
+		assert(i < r && j < c);
+		return m[r * j + i];
+	}
+
+	// m1 : r x c, column major
+	template <typename DType, int r, int c>
+	GPU_CPU_INLINE_FUNC const DType& accessMatElement(const DType* m, int i, int j)
+	{
+		assert(i < r && j < c);
+		return m[r * j + i];
+	}
+
+	// m1 : r1 x c1r2, m2: c1r2 x c2, result: r1 x c2
+	// all are column major
+	template <typename DType, int r1, int c1r2, int c2>
+	GPU_CPU_INLINE_FUNC void matMulMxN(const DType* m1, const DType* m2, DType* result) 
+	{
+		for (int  r = 0; r < r1; r++)
+		{
+			for (int c = 0; c < c2; c++) {
+				accessMatElement<DType, r1, c2>(result, r, c) = 0.f;
+				for (int i = 0; i < c1r2; i++) {
+					accessMatElement<DType, r1, c2>(result, r, c) += 
+						accessMatElement<DType, r1, c1r2>(m1, r, i)
+						* accessMatElement<DType, c1r2, c2>(m2, i, c);
+				}
+			}
+		}
 	}
 };
 
