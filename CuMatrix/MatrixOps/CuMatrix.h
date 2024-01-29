@@ -266,16 +266,51 @@ namespace CuMatrix
 		out[1] = deti * (i21 * b[0] + i22 * b[1] + i23 * b[2]);
 		out[2] = deti * (i31 * b[0] + i32 * b[1] + i33 * b[2]);
 
+		//DType inv[9];
+		////  ( 4 8 - 5 7    5 6 - 3 8    3 7 - 4 6 ) 
+		////  ( 2 7 - 1 8    0 8 - 2 6    1 6 - 0 7 )  / det
+		////  ( 1 5 - 2 4    2 3 - 0 5    0 4 - 1 3 ) 
+
+		//inv[0] = (m[4] * m[8] - m[5] * m[7]);
+		//inv[3] = (m[5] * m[6] - m[3] * m[8]);
+		//inv[6] = (m[3] * m[7] - m[4] * m[6]);
+
+		//DType det = m[0] * inv[0] + m[1] * inv[3] + m[2] * inv[6];
+		//if (det < CMP_EPSILON * (abs(inv[0]) + abs(inv[3]) + abs(inv[6])))
+		//{
+		//	out[0] = b[0];
+		//	out[1] = b[1];
+		//	out[2] = b[2];
+		//	return false;
+		//}
+
+		//inv[1] = (m[2] * m[7] - m[1] * m[8]);
+		//inv[2] = (m[1] * m[5] - m[2] * m[4]);
+		//
+		//inv[4] = (m[0] * m[8] - m[2] * m[6]);
+		//inv[5] = (m[2] * m[3] - m[0] * m[5]);
+	
+		//inv[7] = (m[1] * m[6] - m[0] * m[7]);
+		//inv[8] = (m[0] * m[4] - m[1] * m[3]);
+
+		//CuMatrix:mat3VecProduct(inv, b, out);
+		//CuMatrix::vec3Mul(out, 1.f / det, out);
+
+
+
 		return true;
 	}
 
 	template <typename DType>
-	struct Mat9x9
-	{
+	struct Mat9x9Abstrack {
 		// column major
-		DType data[81];
+		DType* data;
+
+		GPU_CPU_INLINE_FUNC Mat9x9Abstrack(DType* data_in) : data(data_in) {};
+
 		GPU_CPU_INLINE_FUNC DType* col(int iCol) { return data + iCol * 9; }
 		GPU_CPU_INLINE_FUNC DType& operator() (int iRow, int iCol) { return data[iCol * 9 + iRow]; }
+		GPU_CPU_INLINE_FUNC const DType& operator() (int iRow, int iCol) const { return data[iCol * 9 + iRow]; }
 
 		GPU_CPU_INLINE_FUNC void multiplyBy(const DType mul) {
 			for (size_t iCol = 0; iCol < 9; iCol++)
@@ -287,8 +322,18 @@ namespace CuMatrix
 		}
 	};
 
+
 	template <typename DType>
-	GPU_CPU_INLINE_FUNC void vec9OuterProduct(const DType* v1, const DType* v2, Mat9x9<DType>& mat) {
+	struct Mat9x9Static : public Mat9x9Abstrack<DType>
+	{
+		DType dataAllocated[81];
+
+		GPU_CPU_INLINE_FUNC Mat9x9Static() : Mat9x9Abstrack<DType>(dataAllocated) {};
+
+	};
+
+	template <typename DType>
+	GPU_CPU_INLINE_FUNC void vec9OuterProduct(const DType* v1, const DType* v2, Mat9x9Abstrack<DType>& mat) {
 		for (int iCol = 0; iCol < 9; iCol++)
 		{
 			for (int iRow = 0; iRow < 9; iRow++) {
@@ -309,7 +354,7 @@ namespace CuMatrix
 		result[7] = v1[7] * a;
 		result[8] = v1[8] * a;
 	}
-	
+
 	template <typename DType>
 	GPU_CPU_INLINE_FUNC void vec9Add(const DType* v1, const DType* v2, DType* result) {
 		result[0] = v1[0] + v2[0];
@@ -340,7 +385,7 @@ namespace CuMatrix
 
 	// m1 : r x c, column major
 	template <typename DType, int r, int c>
-	GPU_CPU_INLINE_FUNC DType & accessMatElement(DType* m, int i, int j)
+	GPU_CPU_INLINE_FUNC DType& accessMatElement(DType* m, int i, int j)
 	{
 		assert(i < r && j < c);
 		return m[r * j + i];
@@ -357,20 +402,21 @@ namespace CuMatrix
 	// m1 : r1 x c1r2, m2: c1r2 x c2, result: r1 x c2
 	// all are column major
 	template <typename DType, int r1, int c1r2, int c2>
-	GPU_CPU_INLINE_FUNC void matMulMxN(const DType* m1, const DType* m2, DType* result) 
+	GPU_CPU_INLINE_FUNC void matMulMxN(const DType* m1, const DType* m2, DType* result)
 	{
-		for (int  r = 0; r < r1; r++)
+		for (int r = 0; r < r1; r++)
 		{
 			for (int c = 0; c < c2; c++) {
 				accessMatElement<DType, r1, c2>(result, r, c) = 0.f;
 				for (int i = 0; i < c1r2; i++) {
-					accessMatElement<DType, r1, c2>(result, r, c) += 
+					accessMatElement<DType, r1, c2>(result, r, c) +=
 						accessMatElement<DType, r1, c1r2>(m1, r, i)
 						* accessMatElement<DType, c1r2, c2>(m2, i, c);
 				}
 			}
 		}
 	}
+
 };
 
 
