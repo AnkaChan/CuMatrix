@@ -71,8 +71,8 @@ public:
 		if (in_cpuBuffer != nullptr)
 		{
 			// std::cout << "Registering address: " << in_cpuBuffer << std::endl;
-			CUDA_CHECK_RET(cudaHostRegister(in_cpuBuffer, cpuBuffer.nbBytes(), cudaHostRegisterDefault));
-			//cudaHostRegister(in_cpuBuffer, cpuBuffer.nbBytes(), cudaHostRegisterDefault);
+			//CUDA_CHECK_RET(cudaHostRegister(in_cpuBuffer, cpuBuffer.nbBytes(), cudaHostRegisterDefault));
+			cudaHostRegister(in_cpuBuffer, cpuBuffer.nbBytes(), cudaHostRegisterDefault);
 
 		}
 	};

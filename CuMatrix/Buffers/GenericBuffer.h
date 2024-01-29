@@ -241,7 +241,9 @@ class DeviceAllocator
 public:
     bool operator()(void** ptr, size_t size) const
     {
-        return cudaMalloc(ptr, size) == cudaSuccess;
+        auto retVal = cudaMalloc(ptr, size);
+        CUDA_CHECK_RET(retVal);
+        return retVal == cudaSuccess;
     }
 };
 
@@ -250,7 +252,7 @@ class DeviceFree
 public:
     void operator()(void* ptr) const
     {
-        cudaFree(ptr);
+        CUDA_CHECK_RET(cudaFree(ptr));
     }
 };
 
@@ -259,7 +261,9 @@ class ManagedAllocator
 public:
     bool operator()(void** ptr, size_t size) const
     {
-        return cudaMallocManaged(ptr, size) == cudaSuccess;
+        auto retVal = cudaMallocManaged(ptr, size);
+        CUDA_CHECK_RET(retVal);
+        return retVal == cudaSuccess;
     }
 };
 
@@ -268,7 +272,7 @@ class ManagedFree
 public:
     void operator()(void* ptr) const
     {
-        cudaFree(ptr);
+        CUDA_CHECK_RET(cudaFree(ptr));
     }
 };
 
@@ -277,7 +281,7 @@ class HostAllocator
 public:
     bool operator()(void** ptr, size_t size) const
     {
-        cudaMallocHost(ptr, size);
+        CUDA_CHECK_RET(cudaMallocHost(ptr, size));
         //cudaHostAlloc
         return *ptr != nullptr;
     }
@@ -289,7 +293,7 @@ public:
     void operator()(void* ptr) const
     {
         //free(ptr);
-        cudaFreeHost(ptr);
+        CUDA_CHECK_RET(cudaFreeHost(ptr));
     }
 };
 
