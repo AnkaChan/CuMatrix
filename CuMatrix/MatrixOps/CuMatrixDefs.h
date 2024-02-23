@@ -2,8 +2,28 @@
 #include "cuda_runtime.h"
 #include <iostream>
 
-#define GPU_CPU_INLINE_FUNC  __inline__ __device__ __host__
+#define GPU_CPU_INLINE_FUNC  __forceinline__ __device__ __host__
 #define GPU_CPU_FUNC_NO_INLINE  __device__ __host__
+
+#define SQR(x) ((x)*(x))
+#define CUBE(x) ((x)*(x)*(x))
+
+#ifdef __CUDACC__
+#define HOST_FUNC               __host__
+#define DEVICE_FUNC             __device__
+#define HOST_INLINE_FUNC        __host__ __forceinline__
+#define DEVICE_INLINE_FUNC      __device__ __forceinline__
+#define HOST_DEVICE_FUNC        __host__ __device__
+#define HOST_DEVICE_INLINE_FUNC __host__ __device__ __forceinline__
+#else
+#define HOST_FUNC
+#define DEVICE_FUNC
+#define HOST_INLINE_FUNC
+#define DEVICE_INLINE_FUNC
+#define HOST_DEVICE_FUNC
+#define HOST_DEVICE_INLINE_FUNC
+#endif
+
 
 // to avoid the triple bracket when calling global function
 // nvcc does not seem to like variadic macros, so we have to define
