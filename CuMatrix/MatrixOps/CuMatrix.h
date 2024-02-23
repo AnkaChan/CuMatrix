@@ -302,11 +302,11 @@ namespace CuMatrix
 	}
 
 	template <typename DType>
-	struct Mat9x9Abstrack {
+	struct Mat9x9Abstract {
 		// column major
 		DType* data;
 
-		GPU_CPU_INLINE_FUNC Mat9x9Abstrack(DType* data_in) : data(data_in) {};
+		GPU_CPU_INLINE_FUNC Mat9x9Abstract(DType* data_in) : data(data_in) {};
 
 		GPU_CPU_INLINE_FUNC DType* col(int iCol) { return data + iCol * 9; }
 		GPU_CPU_INLINE_FUNC DType& operator() (int iRow, int iCol) { return data[iCol * 9 + iRow]; }
@@ -324,16 +324,27 @@ namespace CuMatrix
 
 
 	template <typename DType>
-	struct Mat9x9Static : public Mat9x9Abstrack<DType>
+	struct Mat9x9Static 
 	{
-		DType dataAllocated[81];
+		DType data[81];
 
-		GPU_CPU_INLINE_FUNC Mat9x9Static() : Mat9x9Abstrack<DType>(dataAllocated) {};
+		GPU_CPU_INLINE_FUNC DType* col(int iCol) { return data + iCol * 9; }
+		GPU_CPU_INLINE_FUNC DType& operator() (int iRow, int iCol) { return data[iCol * 9 + iRow]; }
+		GPU_CPU_INLINE_FUNC const DType& operator() (int iRow, int iCol) const { return data[iCol * 9 + iRow]; }
+
+		GPU_CPU_INLINE_FUNC void multiplyBy(const DType mul) {
+			for (size_t iCol = 0; iCol < 9; iCol++)
+			{
+				for (size_t iRow = 0; iRow < 9; iRow++) {
+					data[iCol * 9 + iRow] *= mul;
+				}
+			}
+		}
 
 	};
 
-	template <typename DType>
-	GPU_CPU_INLINE_FUNC void vec9OuterProduct(const DType* v1, const DType* v2, Mat9x9Abstrack<DType>& mat) {
+	template <typename DType, template<class> class MatType>
+	GPU_CPU_INLINE_FUNC void vec9OuterProduct(const DType* v1, const DType* v2, MatType<DType>& mat) {
 		for (int iCol = 0; iCol < 9; iCol++)
 		{
 			for (int iRow = 0; iRow < 9; iRow++) {
