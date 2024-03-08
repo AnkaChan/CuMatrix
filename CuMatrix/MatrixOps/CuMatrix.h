@@ -244,7 +244,7 @@ namespace CuMatrix
 
 		const DType det = (a11 * i11 + a21 * i12 + a31 * i13);
 
-		if (det < CMP_EPSILON * (abs(a11 * i11) + abs(a21 * i12) + abs(a31 * i13)))
+		if (abs(det) < CMP_EPSILON * (abs(a11 * i11) + abs(a21 * i12) + abs(a31 * i13)))
 		{
 			out[0] = b[0];
 			out[1] = b[1];
